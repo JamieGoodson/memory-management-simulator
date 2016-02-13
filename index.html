@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Memory Management Simulator</title>
+	<style>
+	/* https://en.wikipedia.org/wiki/BIOS_color_attributes */
+
+	body {
+		font-family: Consolas;
+		background-color: #0D0D0D;
+		color: #DADADA;
+		padding: 10px;
+		margin: 0;
+	}
+
+	#memory {
+		height: 120px;
+		margin: 20px;
+	}
+
+	#block {
+		display: inline-block;
+		box-sizing: border-box;
+		border: 1px solid #0D0D0D;
+		height: 100%;
+	}
+
+	.available {
+		background-color: #00AA00;
+	}
+
+	.unavailable {
+		background-color: #AA0000;
+	}
+	</style>
+</head>
+<body>
+
+<div id="memory"></div>
+
+<br /><br />
+<div id="logBox"></div>
+
+<script>
+var logBox = document.getElementById("logBox");
+var memoryDiv = document.getElementById("memory")
+
+var memControlBlockSize = 16;
+
+function Job(size) {
+	this.size = size;
+	this.length = 0;
+	this.name = "Untitled";
+}
+
+function MemControlBlock(size) {
+	this.size = size;
+	this.job = null;
+	this.available = true;
+	this.next = null;
+	this.prev = null;
+
+	this.setJob = function(job) {
+		this.job = job;
+		this.available = false;
+	};
+};
+
+// Simulates memory
+function LinkedList() {
+	this.head = null;
+	this.size = 0;
+
+	// Allocate job to memory.
+	// Use best-fit method: from the list of holes, choose the smallest hole
+	this.requestAllocation = function(job) {
+		blockBestFit = this.head;
+
+		// Make sure our initial best block is valid
+		while ((blockBestFit.size < job.size) || (!blockBestFit.available)) {
+			blockBestFit = blockBestFit.next;
+			if (blockBestFit == null) {return false}; // Means we couldn't even find an initial valid block
+		};
+		//log("Initial best block: " + blockBestFit.size);
+
+		// See if there's an even better block
+		block = blockBestFit.next;
+		while (block != null) {
+			//log("Testing block: " + block.size);
+			if ((block.size >= job.size) && (block.available) && (block.size < blockBestFit.size)) {
+				blockBestFit = block;
+				//log("New best block: " + blockBestFit.size);
+			};
+			block = block.next;
+		};
+
+		spaceLeftover = blockBestFit.size - (job.size + memControlBlockSize); // Space leftover if block was divided
+
+		// Partition block if needed
+		if (spaceLeftover > 0) {
+			newBlock = new MemControlBlock(spaceLeftover);
+
+			nextBlock = blockBestFit.next;
+			if (nextBlock != null) {
+				nextBlock.prev = newBlock;
+				newBlock.next = nextBlock;
+			};
+
+			blockBestFit.next = newBlock;
+			newBlock.prev = blockBestFit;
+
+			blockBestFit.size = job.size;
+
+			linkedList.size -= memControlBlockSize; // Memory control blocks consume space too
+		};
+
+		blockBestFit.setJob(job);
+		return true;
+	};
+
+	this.add = function(block) {
+		if (this.head == null) {
+			this.head = block;
+		} else {
+			block.next = this.head;
+			this.head.prev = block;
+			this.head = block;
+		};
+
+		this.size += block.size;
+	}
+
+	this.toString = function() {
+		string = "[|";
+		block = this.head;
+
+		prefix = "";
+		suffix = "</span> |";
+		while (block != null) {
+			if (block.available) {prefix = "<span style='color: #01DF01;'> "} else {prefix = "<span style='color: #FF0000;'> "};
+			string += (prefix + block.size + suffix);
+			block = block.next;
+		};
+
+		string += "]"
+		return string;
+	};
+
+	this.repaint = function() {
+		block = this.head;
+		memoryDiv.innerHTML = "";
+
+		while (block != null) {
+			var span = document.createElement("span");
+			span.style.width = (((block.size/linkedList.size)*100) + "%");
+			span.setAttribute("id", "block");
+
+			if (block.available) {span.className = "available"} else {span.className = "unavailable"};
+			memoryDiv.appendChild(span);
+			block = block.next;
+		};
+	};
+};
+
+function log(string) {
+	logBox.innerHTML += (string + "<br />");
+}
+
+linkedList = new LinkedList();
+blockSizes = [400, 200, 900, 300, 1200, 800];
+//blockSizes = [2048];
+
+for (i=0; i<blockSizes.length; i++) {
+	linkedList.add(new MemControlBlock(blockSizes[i]));
+};
+
+console.log(linkedList);
+log("Initial list: " + linkedList.toString() + "<br />");
+linkedList.repaint();
+
+jobSizes = [150, 383, 400, 800, 2000, 10, 50, 20, 300, 830];
+
+var jobIndex = 0;
+var allocateJobs = setInterval(function() {
+	job = new Job(jobSizes[jobIndex]);
+	log("Requesting allocation for job: " + job.size);
+
+	if (linkedList.requestAllocation(job)) {
+		log("Job successfully allocated.");
+		log("New list: " + linkedList.toString() + "<br />");
+		linkedList.repaint();
+	} else {
+		log("Job failed to be allocated." + "<br />");
+	};
+
+	jobIndex += 1;
+	if (jobIndex == (jobSizes.length-1)) {
+		clearInterval(allocateJobs);
+	}
+}, 1000);
+
+/*for (i=0; i<jobSizes.length; i++) {
+	job = new Job(jobSizes[i]);
+	log("Requesting allocation for job: " + job.size);
+
+	if (linkedList.requestAllocation(job)) {
+		log("Job successfully allocated.");
+		log("New list: " + linkedList.toString() + "<br />");
+		linkedList.repaint();
+	} else {
+		log("Job failed to be allocated." + "<br />");
+	};
+};*/
+
+</script>
+</body>
+</html>
