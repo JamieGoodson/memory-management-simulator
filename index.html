@@ -4,13 +4,19 @@
 	<title>Memory Management Simulator</title>
 	<style>
 	/* https://en.wikipedia.org/wiki/BIOS_color_attributes */
+	@font-face {
+		font-family: "Perfect DOS VGA 437";
+		src: url("Perfect DOS VGA 437");
+	}
 
 	body {
-		font-family: Consolas;
+		font-family: "Perfect DOS VGA 437 Win", Consolas, monospace;
+		line-height: 1;
 		background-color: #0D0D0D;
 		color: #DADADA;
 		padding: 10px;
 		margin: 0;
+		font-size: 14pt;
 	}
 
 	#memory {
@@ -23,6 +29,7 @@
 		box-sizing: border-box;
 		border: 1px solid #0D0D0D;
 		height: 100%;
+		color: #0D0D0D;
 	}
 
 	.available {
@@ -35,6 +42,7 @@
 	</style>
 </head>
 <body>
+<center><h1>Memory Management</h1><h2>Best-Fit Method</h2></center>
 
 <div id="memory"></div>
 
@@ -59,6 +67,7 @@ function MemControlBlock(size) {
 	this.available = true;
 	this.next = null;
 	this.prev = null;
+	this.fromPartition = false; // Used to determine whether width of a MemControlBlock needs to be added
 
 	this.setJob = function(job) {
 		this.job = job;
@@ -67,7 +76,7 @@ function MemControlBlock(size) {
 };
 
 // Simulates memory
-function LinkedList() {
+function Heap() {
 	this.head = null;
 	this.size = 0;
 
@@ -111,7 +120,7 @@ function LinkedList() {
 
 			blockBestFit.size = job.size;
 
-			linkedList.size -= memControlBlockSize; // Memory control blocks consume space too
+			newBlock.fromPartition = true;
 		};
 
 		blockBestFit.setJob(job);
@@ -151,9 +160,15 @@ function LinkedList() {
 		memoryDiv.innerHTML = "";
 
 		while (block != null) {
+			width = ((block.size/heap.size)*100);
+			if (block.fromPartition) {
+				width += (memControlBlockSize/heap.size)*100;
+			};
+
 			var span = document.createElement("span");
-			span.style.width = (((block.size/linkedList.size)*100) + "%");
+			span.style.width = (width + "%");
 			span.setAttribute("id", "block");
+			span.innerHTML = block.size + "K";
 
 			if (block.available) {span.className = "available"} else {span.className = "unavailable"};
 			memoryDiv.appendChild(span);
@@ -166,17 +181,17 @@ function log(string) {
 	logBox.innerHTML += (string + "<br />");
 }
 
-linkedList = new LinkedList();
+heap = new Heap();
 blockSizes = [400, 200, 900, 300, 1200, 800];
 //blockSizes = [2048];
 
 for (i=0; i<blockSizes.length; i++) {
-	linkedList.add(new MemControlBlock(blockSizes[i]));
+	heap.add(new MemControlBlock(blockSizes[i]));
 };
 
-console.log(linkedList);
-log("Initial list: " + linkedList.toString() + "<br />");
-linkedList.repaint();
+console.log(heap);
+log("Initial list: " + heap.toString() + "<br />");
+heap.repaint();
 
 jobSizes = [150, 383, 400, 800, 2000, 10, 50, 20, 300, 830];
 
@@ -185,10 +200,10 @@ var allocateJobs = setInterval(function() {
 	job = new Job(jobSizes[jobIndex]);
 	log("Requesting allocation for job: " + job.size);
 
-	if (linkedList.requestAllocation(job)) {
+	if (heap.requestAllocation(job)) {
 		log("Job successfully allocated.");
-		log("New list: " + linkedList.toString() + "<br />");
-		linkedList.repaint();
+		log("New list: " + heap.toString() + "<br />");
+		heap.repaint();
 	} else {
 		log("Job failed to be allocated." + "<br />");
 	};
@@ -203,10 +218,10 @@ var allocateJobs = setInterval(function() {
 	job = new Job(jobSizes[i]);
 	log("Requesting allocation for job: " + job.size);
 
-	if (linkedList.requestAllocation(job)) {
+	if (heap.requestAllocation(job)) {
 		log("Job successfully allocated.");
-		log("New list: " + linkedList.toString() + "<br />");
-		linkedList.repaint();
+		log("New list: " + heap.toString() + "<br />");
+		heap.repaint();
 	} else {
 		log("Job failed to be allocated." + "<br />");
 	};
