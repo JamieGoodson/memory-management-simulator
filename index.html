@@ -19,17 +19,35 @@
 		font-size: 14pt;
 	}
 
-	#memory {
-		height: 120px;
+	#memoryContainer {
 		margin: 20px;
+		margin-left: auto;
+		margin-right: auto;
+		height: 1000px;
+		width: 250px;
+		font-size: 11pt;
 	}
 
+	#memory {
+		float: right;
+		width: 150px;
+		height: 100%;
+	}
+
+	#memoryLabels {
+		float: left;
+		width: 100px;
+		height: 100%;
+		text-align: right;
+	}
+
+
 	#block {
-		display: inline-block;
 		box-sizing: border-box;
 		border: 1px solid #0D0D0D;
 		height: 100%;
 		color: #0D0D0D;
+		padding: 2px;
 	}
 
 	.available {
@@ -44,14 +62,18 @@
 <body>
 <center><h1>Memory Management</h1><h2>Best-Fit Method</h2></center>
 
-<div id="memory"></div>
+<div id="memoryContainer">
+	<div id="memory"></div>
+	<div id="memoryLabels"></div>
+</div>
 
 <br /><br />
 <div id="logBox"></div>
 
 <script>
 var logBox = document.getElementById("logBox");
-var memoryDiv = document.getElementById("memory")
+var memoryDiv = document.getElementById("memory");
+var memoryLabelsDiv = document.getElementById("memoryLabels");
 
 var memControlBlockSize = 16;
 
@@ -158,20 +180,28 @@ function Heap() {
 	this.repaint = function() {
 		block = this.head;
 		memoryDiv.innerHTML = "";
+		memoryLabelsDiv.innerHTML = "";
 
 		while (block != null) {
-			width = ((block.size/heap.size)*100);
+			height = ((block.size/heap.size)*100);
 			if (block.fromPartition) {
-				width += (memControlBlockSize/heap.size)*100;
+				height += (memControlBlockSize/heap.size)*100;
 			};
 
-			var span = document.createElement("span");
-			span.style.width = (width + "%");
-			span.setAttribute("id", "block");
-			span.innerHTML = block.size + "K";
+			// Create div block element
+			divBlock = document.createElement("div");
+			divBlock.style.height = (height + "%");
+			divBlock.setAttribute("id", "block");
+			//divBlock.innerHTML = block.size + "K";
 
-			if (block.available) {span.className = "available"} else {span.className = "unavailable"};
-			memoryDiv.appendChild(span);
+			// Create div label element
+			divLabel = document.createElement("div");
+			divLabel.style.height = (height + "%");
+			divLabel.innerHTML = block.size + "K";
+			memoryLabelsDiv.appendChild(divLabel);
+
+			if (block.available) {divBlock.className = "available"} else {divBlock.className = "unavailable"};
+			memoryDiv.appendChild(divBlock);
 			block = block.next;
 		};
 	};
