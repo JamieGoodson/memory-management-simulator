@@ -1,262 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Memory Management Simulator</title>
-	<style>
-	/* https://en.wikipedia.org/wiki/BIOS_color_attributes */
-	@font-face {
-		font-family: "Perfect DOS VGA 437";
-		src: url("Perfect DOS VGA 437");
-	}
-
-	body {
-		font-family: "Perfect DOS VGA 437 Win", Consolas, monospace;
-		line-height: 1;
-		background-color: #0D0D0D;
-		color: #DADADA;
-		padding: 10px;
-		margin: 0;
-		font-size: 14pt;
-	}
-
-	#memoryContainer {
-		margin: 20px;
-		margin-left: auto;
-		margin-right: auto;
-		height: 1000px;
-		width: 250px;
-		font-size: 11pt;
-	}
-
-	#memory {
-		float: right;
-		width: 150px;
-		height: 100%;
-	}
-
-	#memoryLabels {
-		float: left;
-		width: 100px;
-		height: 100%;
-		text-align: right;
-	}
-
-
-	#block {
-		box-sizing: border-box;
-		border: 1px solid #0D0D0D;
-		height: 100%;
-		color: #0D0D0D;
-		padding: 2px;
-	}
-
-	.available {
-		background-color: #00AA00;
-	}
-
-	.unavailable {
-		background-color: #AA0000;
-	}
-	</style>
+	<title>Jamie Goodson's Website</title>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700' rel='stylesheet' type='text/css'>
+	<link href='style.css' rel='stylesheet' type='text/css'>
 </head>
 <body>
-<center><h1>Memory Management</h1><h2>Best-Fit Method</h2></center>
+<div id="mainContainer">
+	<div id="title">
+		<h1>Memory Management</h1><h3>An Online Simulation</h3>
+	</div>
 
-<div id="memoryContainer">
-	<div id="memory"></div>
-	<div id="memoryLabels"></div>
+	<div id="rightContainer">
+		<div id="memoryContainer">
+			<div id="memory"></div>
+		</div>
+	</div>
+
+	<div id="leftContainer">
+		<h2>Add Process</h2>
+		<form id="processForm">
+			<input type="text" name="processSize" placeholder="Process size" autocomplete="off" />
+			<input type="text" name="processTime" placeholder="Process time" autocomplete="off" />
+			<button type="submit" style="display:none;" /></button>
+		</form>
+		<br><br>
+		<h2>Process Queue</h2>
+		<table id="processTable">
+			<tr><th>Process ID</th><th>Size (K)</th><th>Time Units Remaining</th></tr>
+		</table>
+		<br>
+		<br>
+		<div id="logBoxContainer">
+			<div id="logBox">DEBUG LOG<br></div>
+		</div>
+	</div>
 </div>
 
-<br /><br />
-<div id="logBox"></div>
-
-<script>
-var logBox = document.getElementById("logBox");
-var memoryDiv = document.getElementById("memory");
-var memoryLabelsDiv = document.getElementById("memoryLabels");
-
-var memControlBlockSize = 16;
-
-function Job(size) {
-	this.size = size;
-	this.length = 0;
-	this.name = "Untitled";
-}
-
-function MemControlBlock(size) {
-	this.size = size;
-	this.job = null;
-	this.available = true;
-	this.next = null;
-	this.prev = null;
-	this.fromPartition = false; // Used to determine whether width of a MemControlBlock needs to be added
-
-	this.setJob = function(job) {
-		this.job = job;
-		this.available = false;
-	};
-};
-
-// Simulates memory
-function Heap() {
-	this.head = null;
-	this.size = 0;
-
-	// Allocate job to memory.
-	// Use best-fit method: from the list of holes, choose the smallest hole
-	this.requestAllocation = function(job) {
-		blockBestFit = this.head;
-
-		// Make sure our initial best block is valid
-		while ((blockBestFit.size < job.size) || (!blockBestFit.available)) {
-			blockBestFit = blockBestFit.next;
-			if (blockBestFit == null) {return false}; // Means we couldn't even find an initial valid block
-		};
-		//log("Initial best block: " + blockBestFit.size);
-
-		// See if there's an even better block
-		block = blockBestFit.next;
-		while (block != null) {
-			//log("Testing block: " + block.size);
-			if ((block.size >= job.size) && (block.available) && (block.size < blockBestFit.size)) {
-				blockBestFit = block;
-				//log("New best block: " + blockBestFit.size);
-			};
-			block = block.next;
-		};
-
-		spaceLeftover = blockBestFit.size - (job.size + memControlBlockSize); // Space leftover if block was divided
-
-		// Partition block if needed
-		if (spaceLeftover > 0) {
-			newBlock = new MemControlBlock(spaceLeftover);
-
-			nextBlock = blockBestFit.next;
-			if (nextBlock != null) {
-				nextBlock.prev = newBlock;
-				newBlock.next = nextBlock;
-			};
-
-			blockBestFit.next = newBlock;
-			newBlock.prev = blockBestFit;
-
-			blockBestFit.size = job.size;
-
-			newBlock.fromPartition = true;
-		};
-
-		blockBestFit.setJob(job);
-		return true;
-	};
-
-	this.add = function(block) {
-		if (this.head == null) {
-			this.head = block;
-		} else {
-			block.next = this.head;
-			this.head.prev = block;
-			this.head = block;
-		};
-
-		this.size += block.size;
-	}
-
-	this.toString = function() {
-		string = "[|";
-		block = this.head;
-
-		prefix = "";
-		suffix = "</span> |";
-		while (block != null) {
-			if (block.available) {prefix = "<span style='color: #01DF01;'> "} else {prefix = "<span style='color: #FF0000;'> "};
-			string += (prefix + block.size + suffix);
-			block = block.next;
-		};
-
-		string += "]"
-		return string;
-	};
-
-	this.repaint = function() {
-		block = this.head;
-		memoryDiv.innerHTML = "";
-		memoryLabelsDiv.innerHTML = "";
-
-		while (block != null) {
-			height = ((block.size/heap.size)*100);
-			if (block.fromPartition) {
-				height += (memControlBlockSize/heap.size)*100;
-			};
-
-			// Create div block element
-			divBlock = document.createElement("div");
-			divBlock.style.height = (height + "%");
-			divBlock.setAttribute("id", "block");
-			//divBlock.innerHTML = block.size + "K";
-
-			// Create div label element
-			divLabel = document.createElement("div");
-			divLabel.style.height = (height + "%");
-			divLabel.innerHTML = block.size + "K";
-			memoryLabelsDiv.appendChild(divLabel);
-
-			if (block.available) {divBlock.className = "available"} else {divBlock.className = "unavailable"};
-			memoryDiv.appendChild(divBlock);
-			block = block.next;
-		};
-	};
-};
-
-function log(string) {
-	logBox.innerHTML += (string + "<br />");
-}
-
-heap = new Heap();
-blockSizes = [400, 200, 900, 300, 1200, 800];
-//blockSizes = [2048];
-
-for (i=0; i<blockSizes.length; i++) {
-	heap.add(new MemControlBlock(blockSizes[i]));
-};
-
-console.log(heap);
-log("Initial list: " + heap.toString() + "<br />");
-heap.repaint();
-
-jobSizes = [150, 383, 400, 800, 2000, 10, 50, 20, 300, 830];
-
-var jobIndex = 0;
-var allocateJobs = setInterval(function() {
-	job = new Job(jobSizes[jobIndex]);
-	log("Requesting allocation for job: " + job.size);
-
-	if (heap.requestAllocation(job)) {
-		log("Job successfully allocated.");
-		log("New list: " + heap.toString() + "<br />");
-		heap.repaint();
-	} else {
-		log("Job failed to be allocated." + "<br />");
-	};
-
-	jobIndex += 1;
-	if (jobIndex == (jobSizes.length-1)) {
-		clearInterval(allocateJobs);
-	}
-}, 1000);
-
-/*for (i=0; i<jobSizes.length; i++) {
-	job = new Job(jobSizes[i]);
-	log("Requesting allocation for job: " + job.size);
-
-	if (heap.requestAllocation(job)) {
-		log("Job successfully allocated.");
-		log("New list: " + heap.toString() + "<br />");
-		heap.repaint();
-	} else {
-		log("Job failed to be allocated." + "<br />");
-	};
-};*/
-
-</script>
+<script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,130 @@
+/* https://flatuicolors.com */
+body {
+	font-family: 'Open Sans', sans-serif;
+	background-color: #2c3e50;
+	color: #FFFFFF;
+	padding: 0;
+	margin: 0;
+	font-size: 12pt;
+	line-height: 1.4;
+}
+
+h1 {
+	font-size: 40pt;
+	margin: 0;
+	margin-bottom: 20px;
+	line-height: 1;
+}
+
+h2 {
+	margin: 0;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	line-height: 1;
+}
+
+h3 {
+	font-size: 16pt;
+	color: #95A5A6;
+	margin: 0;
+}
+
+#title {
+	text-align: center;
+	margin-bottom: 40px;
+}
+
+#mainContainer {
+	width: 70%;
+	margin-top: 30px;
+	margin-bottom: 20px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+#leftContainer {
+	float: left;
+	width: 50%;
+}
+
+#rightContainer {
+	float: right;
+	width: 50%;
+}
+
+#memoryContainer {
+	float: left;
+	margin-left: auto;
+	margin-right: auto;
+	height: 80vh;
+	width: 150px;
+}
+
+#memory {
+	float: right;
+	width: 150px;
+	height: 100%;
+}
+
+#block {
+	box-sizing: border-box;
+	border: 1px solid #2C3E50;
+	width: 100%;
+}
+
+#blockLabel {
+	text-align: center;
+	font-weight: bold;
+	padding: 2px;
+}
+
+#logBoxContainer {
+	width: 100%;
+	float: left;
+	font-family: Consolas, monospace;
+	height: 400px;
+	overflow: hidden;
+
+/*		box-sizing: border-box;
+	border: 1px solid #FFFFFF;*/
+}
+
+#logBox {
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+	padding-right: 20px; /* Hides scrollbar */
+	display: none;
+}
+
+.available {
+	background-color: #27ae60;
+}
+
+.unavailable {
+	background-color: #c0392b;
+}
+
+#processTable {
+	width: 400px;
+}
+
+#processTable th {
+	text-align: left;
+	padding-right: 20px;
+}
+
+#processTable td {
+	color: #BDC3C7;
+}
+
+input {
+	height: 30px;
+	padding-left: 10px;
+	padding-right: 10px;
+	border: 2px solid #95A5A6;
+	border-radius: 6px;
+	width: 200px;
+	margin: 10px;
+	margin-left: 0;
+}
