@@ -12,6 +12,8 @@ remaining for each process.
 memory).
 * Memory is simulated using a doubly linked list data structure.
 
+![Doubly linked list diagram](http://i.imgur.com/muMyi6A.jpg)
+
 ### Demo
 A live version can be found here:
 [Memory Management Simulator](http://jamiegoodson.uk/memory-management-simulator/)
