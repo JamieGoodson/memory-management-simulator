@@ -1,5 +1,5 @@
 # Memory Management Simulator
-An online simulation of operating system memory management to help computer science students understand the function in a visual way.
+An online simulation of operating system memory management to help computer science students understand the algorithm in a visual way.
 
 * Users can input processes of a given size and length of time.
 * Each process is automatically allocated to a ‘chunk’ in memory (as would be
