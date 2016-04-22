@@ -14,4 +14,4 @@ memory).
 
 ### Demo
 A live version can be found here:
-http://jamiegoodson.uk/memory-management-simulator/
+[Memory Management Simulator](http://jamiegoodson.uk/memory-management-simulator/)
