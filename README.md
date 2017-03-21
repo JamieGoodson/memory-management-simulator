@@ -17,3 +17,5 @@ memory).
 ### Demo
 A live version can be found here:
 [Memory Management Simulator](http://jamiegoodson.uk/projects/memory-management-simulator/)
+
+![Screenshot](https://i.imgur.com/9FnvI0n.png)
